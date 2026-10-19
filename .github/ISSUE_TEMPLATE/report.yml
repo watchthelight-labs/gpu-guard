@@ -1,0 +1,38 @@
+name: Report
+description: A bug, or a report from another machine, GPU or driver
+body:
+  - type: input
+    id: machine
+    attributes:
+      label: Machine and GPU
+      placeholder: Legion 5 15IAX10 (83F0), RTX 5070 Laptop (10DE:2D18)
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: macOS build, driver under test, recovery driver, gpu-guard version
+      placeholder: 26.7.1 (25G241), driver 2.3.6 rc1, recovery 2.3.5, gpu-guard 0.1.0
+    validations:
+      required: true
+  - type: textarea
+    id: pending
+    attributes:
+      label: pending.json of the attempt
+      render: json
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: The attempt's lines from /Users/Shared/gpu-guard/gpu-guard.log
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What the screen showed, whether you confirmed (and how), and what the guard did instead.
+    validations:
+      required: true

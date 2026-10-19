@@ -1,0 +1,17 @@
+#!/bin/bash
+# <wtl> project: gpu-guard | file: gpu-guard-ok | author: watchthelight </wtl>
+# The user's "Good" for the GPU guard: run it (as the user, no sudo) when the screen works after a staged driver boot.
+# The Good button in the guard's dialog does the same. Whoever runs it on someone else's behalf (a second machine over
+# ssh, a script, an agent) runs it only on that person's word, never on its own evidence.
+CONF=${GPU_GUARD_CONF:-/usr/local/etc/gpu-guard.conf}
+[ -f "$CONF" ] && . "$CONF"
+S=${GPU_GUARD_STATE:-${GUARD_STATE_DIR:-$HOME/.cache/gpu-guard}}; P=$S/pending.json
+[ -f "$P" ] || { echo "no pending GPU attempt"; exit 1; }
+BOOT=$(sysctl -n kern.boottime | sed -E 's/^\{ sec = ([0-9]+),.*/\1/')
+echo "good $BOOT $(date '+%F %T')" > "$S/ok-user"   # the guard owns $S/ok (root); this file is the user's
+sleep 3
+/usr/bin/python3 - "$P" <<'PY'
+import json, sys
+d = json.load(open(sys.argv[1]))
+print(d.get("attempt"), "result:", d.get("result") or "ok recorded, the guard marks it pass within a few seconds")
+PY

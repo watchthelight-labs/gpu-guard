@@ -1,0 +1,30 @@
+# <wtl> project: gpu-guard | file: gpu-guard.conf.example | author: watchthelight </wtl>
+# gpu-guard settings, read as a shell file by guard.sh (as root), stage.sh and gpu-guard-ok.
+# Installed as /usr/local/etc/gpu-guard.conf (root:wheel 644). Keep it owned by root: the guard sources it as root.
+# Only GUARD_USER is required; everything else shows its default.
+
+# The account that logs in after a staged boot and confirms it. install.sh fills this in.
+GUARD_USER=
+
+# Where pending.json, the ok files and the per-attempt captures live (must be writable by GUARD_USER).
+#GUARD_STATE_DIR=/Users/<user>/.cache/gpu-guard
+
+# The guard's log. The LaunchDaemon's stdout file stays in /Users/Shared/gpu-guard whatever this says.
+#GUARD_LOG_DIR=/Users/Shared/gpu-guard
+
+# Optional: a git checkout that must be clean when you stage (its HEAD goes into pending.json).
+#GUARD_REPO=
+
+# The driver. The defaults fit NullMoth's NVIDIA Metal driver and forks of it. No spaces in paths.
+# GUARD_PLUGIN is relative to / and to the recovery package root (the rollback boot checks its sha256).
+#GUARD_PLUGIN=Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/NVMTLDriver
+# kextstat pattern that means "the driver is loaded"
+#GUARD_KEXT=nullmoth.NVRMFB
+# files whose sha256 goes into each capture (default: the plugin and the NVRM, NVRMFB, NVAccel kexts)
+#GUARD_BINARIES="/Library/GPUBundles/NVMTLDriver.bundle/Contents/MacOS/NVMTLDriver /Library/Extensions/NVRM.kext/Contents/MacOS/NVRM"
+# capture filters (extended regular expressions)
+#GUARD_KEXT_GREP='nullmoth|watchthelight'
+#GUARD_SYSCTL_GREP='nvrmfb|nvaccel|nvgfx'
+#GUARD_DMESG_GREP='nvrm|nvaccel|cursor|nullmoth'
+#GUARD_IOREG_CLASS=NVRMNVDAFramebuffer
+#GUARD_IOREG_KEYS='NVRMTrace|NVRMTraceCount|nvrm-flip|driver-version|nullmoth-nv-ok'
