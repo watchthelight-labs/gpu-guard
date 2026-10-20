@@ -46,6 +46,11 @@ Run it from the account that will confirm the boots. It installs:
 
 The daemon also runs once right after install. With nothing staged it logs `no pending attempt` and exits. `stage.sh` stays in the clone; run it from there.
 
+The guard also asks the driver itself whether the display came up: after login it reads an IORegistry property of
+the driver's service (`HOLD_SERVICE`/`HOLD_PROP`/`HOLD_ARMED` in the config, NullMoth's NVRM `nvrm-boot-hold` =
+"display armed" by default). A boot whose kexts loaded but whose display never armed runs on software rendering; the
+guard rolls that back at once, and never counts such a rollback boot as good. Set `HOLD_PROP=""` to turn this off.
+
 No password is stored anywhere. `install.sh` is run with `sudo` by you; `stage.sh` and `gpu-guard-ok` run as your normal user and don't need root.
 
 ## Configuration

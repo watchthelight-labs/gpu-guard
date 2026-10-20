@@ -28,3 +28,9 @@ GUARD_USER=
 #GUARD_DMESG_GREP='nvrm|nvaccel|cursor|nullmoth'
 #GUARD_IOREG_CLASS=NVRMNVDAFramebuffer
 #GUARD_IOREG_KEYS='NVRMTrace|NVRMTraceCount|nvrm-flip|driver-version|nullmoth-nv-ok'
+
+# The driver's own verdict on the display, read from an IORegistry property of its service after login and on a
+# rollback boot. Defaults fit NullMoth's NVRM. Set HOLD_PROP to an empty string to turn the check off.
+# HOLD_SERVICE=NVRM
+# HOLD_PROP=nvrm-boot-hold
+# HOLD_ARMED="display armed"

@@ -65,6 +65,7 @@ capture() {
   # shellcheck disable=SC2086  # GUARD_BINARIES is a space-separated list
   shasum -a 256 $BINARIES 2>/dev/null | cut -c1-12,65- > "$d/driver-sums.txt"
   sysctl debug 2>/dev/null | grep -iE "$SYSCTL_GREP" > "$d/sysctl.txt"
+  [ -z "$HOLD_PROP" ] || ioreg -rn "$HOLD_SERVICE" -l -w0 2>/dev/null | grep -oE '"[a-z-]+" = "[^"]*"' > "$d/driver-props.txt"
   dmesg 2>/dev/null | grep -iE "$DMESG_GREP" | tail -400 > "$d/dmesg-driver.txt"
   ioreg -r -c "$IOREG_CLASS" -l -w0 2>/dev/null | grep -E "\"($IOREG_KEYS)\"" | cut -c1-4000 > "$d/ioreg-fb.txt"
   pgrep -x WindowServer >/dev/null && echo "WindowServer running (pid $(pgrep -x WindowServer | head -1))" > "$d/windowserver.txt" || echo "WindowServer NOT running" > "$d/windowserver.txt"
@@ -76,6 +77,13 @@ capture() {
   log "captured $1 -> $d"
 }
 kexts_loaded() { kextstat 2>/dev/null | grep -q "$KEXT_LOADED"; }
+# display_armed: the driver's own verdict on whether the display came up, read from an IORegistry property of its
+# service (HOLD_SERVICE, HOLD_PROP, HOLD_ARMED in the config; for NullMoth, NVRM's nvrm-boot-hold = "display armed").
+# Loaded kexts are not enough: a driver whose boot hold timed out mid bring-up leaves the desktop on software
+# rendering with every kext in place. An empty HOLD_PROP turns the check off.
+HOLD_SERVICE=${HOLD_SERVICE:-NVRM}; HOLD_PROP=${HOLD_PROP:-nvrm-boot-hold}; HOLD_ARMED=${HOLD_ARMED:-display armed}
+hold_state() { [ -n "$HOLD_PROP" ] || { echo "$HOLD_ARMED"; return; }; ioreg -rn "$HOLD_SERVICE" -l -w0 2>/dev/null | sed -nE "s/.*\"$HOLD_PROP\" = \"([^\"]*)\".*/\1/p" | head -1; }
+display_armed() { [ "$(hold_state)" = "$HOLD_ARMED" ]; }
 plugin_sum() { shasum -a 256 "/$PLUGIN_REL" 2>/dev/null | cut -c1-12; }
 console_user() { stat -f %Su /dev/console 2>/dev/null; }
 wait_login() {
@@ -126,7 +134,11 @@ if [ "$RESULT" = "rolled-back" ]; then
     setfield result '"failed-after-rollback"'; setfield reason "\"recovery plugin not in place (have $have, want $want; install $(field recovery_install))\""
     log "ROLLBACK BOOT STILL ON THE STAGED PLUGIN ($have, want $want): left for a person"; exit 1
   fi
-  if kexts_loaded; then setfield result '"pass-after-rollback"'; setfield recovery_plugin "\"$have\""; log "rollback boot ok: kexts loaded, plugin $have"; exit 0; fi
+  if kexts_loaded && display_armed; then setfield result '"pass-after-rollback"'; setfield recovery_plugin "\"$have\""; log "rollback boot ok: kexts loaded, display armed, plugin $have"; exit 0; fi
+  if kexts_loaded; then
+    setfield result '"failed-after-rollback"'; setfield reason "\"recovery driver loaded but the display did not arm ($HOLD_PROP: $(hold_state))\""
+    log "ROLLBACK BOOT WITHOUT AN ARMED DISPLAY ($HOLD_PROP: $(hold_state)): software rendering, left for a person"; exit 1
+  fi
   setfield result '"failed-after-rollback"'; log "ROLLBACK BOOT WITHOUT THE DRIVER KEXTS: left for a person"; exit 1
 fi
 # staged in this very boot (install.sh bootstraps the daemon, which runs at load): the staged driver has not booted yet
@@ -144,6 +156,9 @@ wait_login
 log "logged in; window of ${TIMEOUT}s for the user's confirmation starts now"
 capture "login"
 if ! kexts_loaded; then log "driver kexts not loaded"; rollback "$KEXT_LOADED not loaded after login"; exit $?; fi
+# the desktop is up, so the bring-up is over one way or the other: an unarmed display now means software rendering,
+# and no window is worth waiting for (nobody would confirm a desktop that is not accelerated)
+if ! display_armed; then log "display not armed after login ($HOLD_PROP: $(hold_state))"; rollback "display not armed after login ($HOLD_PROP: $(hold_state))"; exit $?; fi
 ask_dialog
 deadline=$(( $(date +%s) + TIMEOUT ))
 while [ "$(date +%s)" -lt "$deadline" ]; do
