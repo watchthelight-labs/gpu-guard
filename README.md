@@ -1,9 +1,5 @@
 # gpu-guard
 
-> **Heads up:** a good portion of this code is AI generated. I do understand how it works,
-> and I'm happy to explain any of it. If something looks wrong or you have a question,
-> open an issue or ping me on Discord (`watchthelight`).
-
 A boot-time safety net for testing GPU driver builds on macOS. You install a driver build you are not sure about, stage the boot, and restart. After you log in, the guard asks you whether the screen works. If you say Good within the window (180 s by default), the build is kept. If you don't, because the panel is frozen, black, or showing a picture that never changes, the guard saves what the driver was doing, installs the last driver that worked, and restarts the Mac by itself.
 
 I wrote it while testing builds of a fork of NullMoth's NVIDIA Metal driver on a Hackintosh laptop. A bad build there often leaves macOS running fine underneath: you can ssh in, scripts keep going, a screenshot through the compositor even looks correct, but the panel itself shows nothing new. Anything automated that judges the boot from inside the machine gets fooled. So the guard only accepts the word of the person looking at the screen, and treats silence as a failure.
