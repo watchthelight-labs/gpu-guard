@@ -1,4 +1,6 @@
-# gpu-guard
+# WTLGpuGuard
+
+Renamed from `gpu-guard` on 2026-10-31; the installed tool is still `gpu-guard`. Old links redirect here.
 
 A boot-time safety net for testing GPU driver builds on macOS. You install a driver build you are not sure about, stage the boot, and restart. After you log in, the guard asks you whether the screen works. If you say Good within the window (180 s by default), the build is kept. If you don't, because the panel is frozen, black, or showing a picture that never changes, the guard saves what the driver was doing, installs the last driver that worked, and restarts the Mac by itself.
 
@@ -26,7 +28,7 @@ The guard restarts the Mac at most once per attempt. A second failure is recorde
 Needs admin rights (the guard is a root LaunchDaemon) and `/usr/bin/python3`, which comes with the Xcode Command Line Tools (`xcode-select --install`). Without them the guard can't read its state file.
 
 ```
-git clone https://github.com/watchthelight-labs/gpu-guard
+git clone https://github.com/watchthelight-labs/WTLGpuGuard
 cd gpu-guard
 sudo ./install.sh
 ```
@@ -130,7 +132,7 @@ Used daily for driver test boots on a Lenovo Legion 5 15IAX10 Hackintosh (RTX 50
 
 ## How it works
 
-The state machine, the boot-time checks and why each one is there: [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md). The Wi-Fi counterpart is [wifi-guard](https://github.com/watchthelight-labs/wifi-guard).
+The state machine, the boot-time checks and why each one is there: [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md). The Wi-Fi counterpart is [WTLWifiGuard](https://github.com/watchthelight-labs/WTLWifiGuard).
 
 ## Licence
 
